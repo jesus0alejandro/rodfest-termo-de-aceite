@@ -20,7 +20,7 @@ function doPost(e) {
     if (new Date() > PRAZO_LIMITE) {
       return responderJson({ ok: false, motivo: 'prazo encerrado' });
     }
-    if (!dados.nome || !dados.telefone || !dados.email) {
+    if (!dados.nome || !dados.telefone || !dados.email || dados.declarou_maior_idade !== true || dados.aceitou_termos !== true) {
       return responderJson({ ok: false, motivo: 'dados incompletos' });
     }
 
@@ -97,7 +97,7 @@ function enviarEmailConfirmacao(dados) {
 
 Sua presença no RodFest Folia está confirmada. Protocolo: ${dados.protocolo}
 
-Termo aceito (v${dados.termo_versao}):
+Termo aceito (${dados.termo_versao}):
 - Uso de imagem para divulgação no @eitalovers e redes sociais
 - Responsabilidade por danos causados à propriedade da chácara
 - A organização não se responsabiliza por itens pessoais perdidos ou furtados
