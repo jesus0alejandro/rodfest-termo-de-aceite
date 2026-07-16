@@ -4,6 +4,7 @@ const ABA_ACEITES = 'Aceites';
 const EMAIL_ORGANIZACAO = 'eitaloversrodfestfolia@gmail.com';
 const PRAZO_LIMITE = new Date('2026-07-17T23:59:00-03:00');
 const ARQUIVO_HTML_TICKET = 'termo'; // rodfest_termo_de_embarque.html
+const NOME_REMETENTE = 'RodFest Folia 2026'; // nome exibido no lugar do e-mail cru na caixa de entrada de quem recebe
 
 // Brasão do RodFest (mesmo PNG do ticket), 154x180, reduzido pra caber num e-mail sem pesar.
 // Gerado uma vez a partir do <img class="badge-crest"> de termo.html — se o brasão mudar, regenerar este base64.
@@ -102,7 +103,7 @@ const CLAUSULAS_TERMO = [
   { emoji: '📸', nome: 'Uso de imagem', texto: 'Vamos registrar fotos e vídeos da festa para postar no @eitalovers e redes sociais. Se não quiser aparecer, avise a produção na entrada. Fora isso, ao confirmar presença você autoriza o uso da sua imagem nesses registros.' },
   { emoji: '🏡', nome: 'Danos à propriedade', texto: 'A chácara, a piscina, o campo e os equipamentos são de terceiros. Cada convidado responde por qualquer dano que causar por mau uso ou imprudência. Acidentes do uso normal do espaço são risco que você assume ao participar.' },
   { emoji: '🎒', nome: 'Itens pessoais', texto: 'Não tem serviço de guarda-volumes no evento. A organização não se responsabiliza por perda, troca ou furto de celular, carteira, roupas e outros itens pessoais. Evite deixar objetos de valor sem alguém de confiança por perto.' },
-  { emoji: '💳', nome: 'Reembolso e cancelamento', texto: 'Você pode cancelar e pedir reembolso integral em até 7 dias corridos após a compra (Art. 49 do CDC), desde que solicite até 48 horas antes do início da festa. Depois disso, não é possível cancelar nem reembolsar, mesmo dentro dos 7 dias, porque a produção já compromete comida, bebida e estrutura com base nos confirmados. Se o evento for cancelado pela organização, o reembolso integral é garantido.' }
+  { emoji: '💳', nome: 'Reembolso e cancelamento', texto: 'Você pode cancelar e pedir reembolso integral em até 7 dias corridos após a compra (Art. 49 do CDC), desde que solicite até 48 horas antes do início da festa. Estamos na reta final antes do evento e a organização já reservou comida, bebida e estrutura com base nos confirmados — por isso, a partir de agora não é mais possível cancelar ou pedir reembolso, mesmo que ainda esteja dentro dos 7 dias corridos da compra. Se o evento for cancelado pela organização, o reembolso integral continua garantido.' }
 ];
 
 // ponytail: GmailApp corrompe emoji fora do BMP (📸🏡🎒💳) dentro de htmlBody quando
@@ -168,6 +169,7 @@ Qualquer dúvida, chama no grupo do WhatsApp.`;
     <p style="margin:14px 0 0;font-size:12px;color:#7A7160;">Você declarou ter 18 anos ou mais e aceitou os termos acima em ${formatarDataHora_(dados.aceito_em)}.</p>`;
 
   GmailApp.sendEmail(dados.email, 'RodFest Folia: confirmação de presença', corpoTexto, {
+    name: NOME_REMETENTE,
     htmlBody: envolverEmailHtml_('PRESENÇA CONFIRMADA', corpoHtml),
     inlineImages: { brasao: getBrasaoBlob_() }
   });
@@ -196,6 +198,7 @@ ${linhas.map(([rotulo, valor]) => `${rotulo}: ${valor}`).join('\n')}`;
     `RodFest: ${dados.nome} ${foiAtualizacao ? 'atualizou' : 'confirmou'} presença`,
     corpoTexto,
     {
+      name: NOME_REMETENTE,
       htmlBody: envolverEmailHtml_(foiAtualizacao ? 'ACEITE ATUALIZADO' : 'NOVO ACEITE', corpoHtml),
       inlineImages: { brasao: getBrasaoBlob_() }
     }
@@ -226,7 +229,7 @@ function configurarAbaCheckin() {
 function testeEmailHtml_() {
   const dadosFake = {
     nome: 'Fulano de Tal', telefone: '41999990000', email: 'fulano@example.com',
-    termo_versao: 'v1.1', protocolo: 'RF-TESTE', aceito_em: new Date().toISOString()
+    termo_versao: 'v1.2', protocolo: 'RF-TESTE', aceito_em: new Date().toISOString()
   };
 
   const html = envolverEmailHtml_('PRESENÇA CONFIRMADA', `
