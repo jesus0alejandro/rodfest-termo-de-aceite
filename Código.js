@@ -264,25 +264,28 @@ function configurarAbaCheckin() {
 
 // Colunas de check-in operacional (dia da festa), pensadas pra virar campos Sim/Não no AppSheet.
 const COLUNAS_OPERACIONAIS = ['subiu_onibus', 'pegou_abada', 'entrada_chacara', 'foto_sozinho', 'foto_aniversariante'];
+// ponytail: cobre até esta linha com checkbox. Se passar disso, suba o número e rode de novo — a
+// função não duplica coluna nem apaga checkbox já marcado, só estende o intervalo formatado.
+const LINHA_LIMITE_CHECKBOX = 5000;
 
 /**
- * Rode esta função UMA VEZ manualmente no editor do Apps Script (selecione
- * "configurarColunasOperacionais" → Executar). Adiciona as colunas de
- * check-in do dia da festa na aba Aceites, já formatadas como checkbox
- * (o AppSheet detecta automaticamente como campo Sim/Não). Não duplica se
- * já existirem, então pode rodar de novo sem problema.
- * ponytail: formata checkbox só nas primeiras 500 linhas; se a lista de
- * convidados passar disso, aumente o número abaixo.
+ * Rode no editor do Apps Script (selecione "configurarColunasOperacionais" →
+ * Executar) sempre que precisar: cria as colunas de check-in que faltarem na
+ * aba Aceites e (re)estende a formatação de checkbox até LINHA_LIMITE_CHECKBOX,
+ * mesmo nas colunas que já existiam. Seguro rodar quantas vezes quiser.
  */
 function configurarColunasOperacionais() {
   const aba = SpreadsheetApp.openById(SHEET_ID).getSheetByName(ABA_ACEITES);
   const header = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
 
   COLUNAS_OPERACIONAIS.forEach(nomeColuna => {
-    if (header.includes(nomeColuna)) return;
-    const coluna = aba.getLastColumn() + 1;
-    aba.getRange(1, coluna).setValue(nomeColuna);
-    aba.getRange(2, coluna, 500).insertCheckboxes();
+    let coluna = header.indexOf(nomeColuna) + 1; // 1-based; 0 quando ainda não existe
+    if (coluna === 0) {
+      coluna = aba.getLastColumn() + 1;
+      aba.getRange(1, coluna).setValue(nomeColuna);
+      header.push(nomeColuna);
+    }
+    aba.getRange(2, coluna, LINHA_LIMITE_CHECKBOX).insertCheckboxes();
   });
 }
 
