@@ -211,6 +211,16 @@
           <p>Você pode cancelar e pedir reembolso integral em até 7 dias corridos após a compra (Art. 49 do CDC), desde que solicite até 48 horas antes do início da festa. Estamos na reta final antes do evento e a organização já reservou comida, bebida e estrutura com base nos confirmados — por isso, a partir de agora não é mais possível cancelar ou pedir reembolso, mesmo que ainda esteja dentro dos 7 dias corridos da compra. Se o evento for cancelado pela organização, o reembolso integral continua garantido.</p>
         </details>
 
+        <details class="clause">
+          <summary>🚫 Substâncias ilícitas <span class="chev">▶</span></summary>
+          <p>É proibido entrar ou usar drogas ilícitas e qualquer substância proibida por lei dentro do evento. Quem for flagrado está sujeito à expulsão imediata do local.</p>
+        </details>
+
+        <details class="clause">
+          <summary>🥊 Brigas e conduta <span class="chev">▶</span></summary>
+          <p>Brigas, discussões e qualquer tipo de conduta agressiva não são permitidas. Quem se envolver está sujeito à expulsão imediata do evento.</p>
+        </details>
+
         <div class="checks">
           <label class="check">
             <input type="checkbox" id="idade" required>
@@ -218,7 +228,7 @@
           </label>
           <label class="check">
             <input type="checkbox" id="aceite" required>
-            Li e aceito os termos acima (uso de imagem, danos à propriedade, itens pessoais e reembolso).
+            Li e aceito os termos acima (uso de imagem, danos à propriedade, itens pessoais, reembolso, substâncias ilícitas e conduta).
           </label>
         </div>
 
@@ -243,7 +253,7 @@
     </div>
   </div>
 
-  <div class="footer-note">Termo v1.2 · Dúvidas ou quer retirar sua imagem de algum registro? Fala com a produção pelo grupo do WhatsApp.</div>
+  <div class="footer-note">Termo v1.3 · Dúvidas ou quer retirar sua imagem de algum registro? Fala com a produção pelo grupo do WhatsApp.</div>
 </div>
 
 <script>
@@ -323,7 +333,7 @@ document.getElementById("form").addEventListener("submit", async function(ev){
     nome, telefone, email,
     declarou_maior_idade: idade,
     aceitou_termos: aceite,
-    termo_versao: "v1.2",
+    termo_versao: "v1.3",
     protocolo: codigo,
     aceito_em: new Date().toISOString()
   };

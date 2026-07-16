@@ -97,13 +97,15 @@ function encontrarLinhaPorTelefone(sheet, telefoneNormalizado) {
 
 // ==== E-mails (com a identidade visual do ticket) ====
 
-// Texto oficial das 4 cláusulas, igual ao de termo.html — se o termo mudar de versão, atualizar aqui também.
+// Texto oficial das 6 cláusulas, igual ao de termo.html — se o termo mudar de versão, atualizar aqui também.
 // Emoji fica separado do nome porque o htmlBody do GmailApp precisa dele como entidade numérica (ver emojiParaEntidadeHtml_).
 const CLAUSULAS_TERMO = [
   { emoji: '📸', nome: 'Uso de imagem', texto: 'Vamos registrar fotos e vídeos da festa para postar no @eitalovers e redes sociais. Se não quiser aparecer, avise a produção na entrada. Fora isso, ao confirmar presença você autoriza o uso da sua imagem nesses registros.' },
   { emoji: '🏡', nome: 'Danos à propriedade', texto: 'A chácara, a piscina, o campo e os equipamentos são de terceiros. Cada convidado responde por qualquer dano que causar por mau uso ou imprudência. Acidentes do uso normal do espaço são risco que você assume ao participar.' },
   { emoji: '🎒', nome: 'Itens pessoais', texto: 'Não tem serviço de guarda-volumes no evento. A organização não se responsabiliza por perda, troca ou furto de celular, carteira, roupas e outros itens pessoais. Evite deixar objetos de valor sem alguém de confiança por perto.' },
-  { emoji: '💳', nome: 'Reembolso e cancelamento', texto: 'Você pode cancelar e pedir reembolso integral em até 7 dias corridos após a compra (Art. 49 do CDC), desde que solicite até 48 horas antes do início da festa. Estamos na reta final antes do evento e a organização já reservou comida, bebida e estrutura com base nos confirmados — por isso, a partir de agora não é mais possível cancelar ou pedir reembolso, mesmo que ainda esteja dentro dos 7 dias corridos da compra. Se o evento for cancelado pela organização, o reembolso integral continua garantido.' }
+  { emoji: '💳', nome: 'Reembolso e cancelamento', texto: 'Você pode cancelar e pedir reembolso integral em até 7 dias corridos após a compra (Art. 49 do CDC), desde que solicite até 48 horas antes do início da festa. Estamos na reta final antes do evento e a organização já reservou comida, bebida e estrutura com base nos confirmados — por isso, a partir de agora não é mais possível cancelar ou pedir reembolso, mesmo que ainda esteja dentro dos 7 dias corridos da compra. Se o evento for cancelado pela organização, o reembolso integral continua garantido.' },
+  { emoji: '🚫', nome: 'Substâncias ilícitas', texto: 'É proibido entrar ou usar drogas ilícitas e qualquer substância proibida por lei dentro do evento. Quem for flagrado está sujeito à expulsão imediata do local.' },
+  { emoji: '🥊', nome: 'Brigas e conduta', texto: 'Brigas, discussões e qualquer tipo de conduta agressiva não são permitidas. Quem se envolver está sujeito à expulsão imediata do evento.' }
 ];
 
 // ponytail: GmailApp corrompe emoji fora do BMP (📸🏡🎒💳) dentro de htmlBody quando
@@ -229,7 +231,7 @@ function configurarAbaCheckin() {
 function testeEmailHtml_() {
   const dadosFake = {
     nome: 'Fulano de Tal', telefone: '41999990000', email: 'fulano@example.com',
-    termo_versao: 'v1.2', protocolo: 'RF-TESTE', aceito_em: new Date().toISOString()
+    termo_versao: 'v1.3', protocolo: 'RF-TESTE', aceito_em: new Date().toISOString()
   };
 
   const html = envolverEmailHtml_('PRESENÇA CONFIRMADA', `
