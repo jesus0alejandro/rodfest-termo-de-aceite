@@ -262,6 +262,30 @@ function configurarAbaCheckin() {
   );
 }
 
+// Colunas de check-in operacional (dia da festa), pensadas pra virar campos Sim/Não no AppSheet.
+const COLUNAS_OPERACIONAIS = ['subiu_onibus', 'pegou_abada', 'entrada_chacara', 'foto_sozinho', 'foto_aniversariante'];
+
+/**
+ * Rode esta função UMA VEZ manualmente no editor do Apps Script (selecione
+ * "configurarColunasOperacionais" → Executar). Adiciona as colunas de
+ * check-in do dia da festa na aba Aceites, já formatadas como checkbox
+ * (o AppSheet detecta automaticamente como campo Sim/Não). Não duplica se
+ * já existirem, então pode rodar de novo sem problema.
+ * ponytail: formata checkbox só nas primeiras 500 linhas; se a lista de
+ * convidados passar disso, aumente o número abaixo.
+ */
+function configurarColunasOperacionais() {
+  const aba = SpreadsheetApp.openById(SHEET_ID).getSheetByName(ABA_ACEITES);
+  const header = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+
+  COLUNAS_OPERACIONAIS.forEach(nomeColuna => {
+    if (header.includes(nomeColuna)) return;
+    const coluna = aba.getLastColumn() + 1;
+    aba.getRange(1, coluna).setValue(nomeColuna);
+    aba.getRange(2, coluna, 500).insertCheckboxes();
+  });
+}
+
 /**
  * Self-check manual do template de e-mail: rode pelo editor do Apps Script
  * (selecionar "testeEmailHtml_" → Executar). Não envia e-mail nenhum, só
