@@ -116,6 +116,42 @@ function emojiParaEntidadeHtml_(emoji) {
   return Array.from(emoji).map(ch => `&#${ch.codePointAt(0)};`).join('');
 }
 
+// Lista informativa só do e-mail de confirmação do convidado (não faz parte do termo em termo.html,
+// não precisa de checkbox — é só um aviso de itens/condutas proibidas na entrada).
+const ITENS_PROIBIDOS = [
+  'Armas de fogo, armas brancas ou qualquer objeto que possa ser utilizado como arma.',
+  'Drogas ilícitas e substâncias proibidas por lei.',
+  'Garrafas, copos, latas ou recipientes de vidro.',
+  'Objetos cortantes ou perfurantes, como facas, canivetes, estiletes e similares.',
+  'Fogos de artifício, sinalizadores, explosivos ou qualquer material inflamável.',
+  'Aerossóis, sprays, perfumes e outros recipientes pressurizados, caso o evento queira restringir.',
+  'Substâncias inflamáveis ou químicas perigosas.',
+  'Caixas de som, aparelhos que emitam som em volume elevado ou equipamentos que possam incomodar o evento.',
+  'Drones e equipamentos profissionais de filmagem sem autorização prévia da organização.',
+  'Bastões de selfie, tripés grandes ou objetos que possam atrapalhar a circulação.',
+  'Animais, exceto cães-guia ou animais de assistência legalmente autorizados.',
+  'Qualquer tipo de objeto que possa causar riscos à segurança dos participantes.',
+  'A entrada de pessoas portando itens destinados à comercialização ou divulgação sem autorização da organização.',
+  'A prática de atos de violência, brigas, ameaças, assédio, discriminação ou qualquer comportamento que coloque outros participantes em risco.',
+  'Subir em estruturas, telhados, muros, árvores ou áreas não autorizadas.',
+  'Danificar, remover ou utilizar de forma indevida qualquer estrutura, decoração ou equipamento do evento.',
+  'Invadir áreas restritas, backstage, áreas técnicas ou espaços destinados exclusivamente à equipe.',
+  'O acesso ao evento com ingresso, credencial ou identificação falsificada ou pertencente a outra pessoa.'
+];
+
+function itensProibidosTexto_() {
+  return `ITENS E CONDUTAS PROIBIDAS:\n${ITENS_PROIBIDOS.map(i => `- ${i}`).join('\n')}`;
+}
+
+function itensProibidosHtml_() {
+  return `<div style="margin:16px 0 0;padding:12px 14px;background:#FFF6F5;border:1px solid #F3C9C4;border-radius:8px;">
+    <div style="font-weight:800;color:#D6473A;margin-bottom:6px;font-size:13px;">${emojiParaEntidadeHtml_('🚫')} ITENS E CONDUTAS PROIBIDAS</div>
+    <ul style="margin:0;padding-left:18px;font-size:12.5px;color:#3A3A32;line-height:1.5;">
+      ${ITENS_PROIBIDOS.map(i => `<li style="margin-bottom:4px;">${i}</li>`).join('')}
+    </ul>
+  </div>`;
+}
+
 function getBrasaoBlob_() {
   return Utilities.newBlob(Utilities.base64Decode(BRASAO_PNG_BASE64), 'image/png', 'brasao.png');
 }
@@ -161,6 +197,8 @@ ${CLAUSULAS_TERMO.map(c => `${c.nome}\n${c.texto}`).join('\n\n')}
 
 Você declarou ter 18 anos ou mais e aceitou os termos acima em ${formatarDataHora_(dados.aceito_em)}.
 
+${itensProibidosTexto_()}
+
 Data: 18/07/2026, das 09:30 às 22:00.
 Qualquer dúvida, chama no grupo do WhatsApp.`;
 
@@ -168,7 +206,8 @@ Qualquer dúvida, chama no grupo do WhatsApp.`;
     <div style="background:#EDE6D2;border-radius:8px;padding:10px 14px;text-align:center;font-family:monospace;font-size:15px;color:#0B4020;letter-spacing:.05em;margin:0 0 18px;">${dados.protocolo}</div>
     <p style="margin:0 0 14px;"><strong>Termo aceito na íntegra (${dados.termo_versao}):</strong></p>
     ${clausulasHtml_()}
-    <p style="margin:14px 0 0;font-size:12px;color:#7A7160;">Você declarou ter 18 anos ou mais e aceitou os termos acima em ${formatarDataHora_(dados.aceito_em)}.</p>`;
+    <p style="margin:14px 0 0;font-size:12px;color:#7A7160;">Você declarou ter 18 anos ou mais e aceitou os termos acima em ${formatarDataHora_(dados.aceito_em)}.</p>
+    ${itensProibidosHtml_()}`;
 
   GmailApp.sendEmail(dados.email, 'RodFest Folia: confirmação de presença', corpoTexto, {
     name: NOME_REMETENTE,
@@ -237,6 +276,7 @@ function testeEmailHtml_() {
   const html = envolverEmailHtml_('PRESENÇA CONFIRMADA', `
     <div>${dadosFake.protocolo}</div>
     ${clausulasHtml_()}
+    ${itensProibidosHtml_()}
   `);
 
   if (!html.includes('cid:brasao')) throw new Error('template sem referência ao brasão (cid:brasao)');
@@ -250,6 +290,14 @@ function testeEmailHtml_() {
       throw new Error('emoji cru vazou pro HTML (deveria estar como entidade numérica): ' + c.nome);
     }
   });
+
+  if (!html.includes(emojiParaEntidadeHtml_('🚫')) || !html.includes('ITENS E CONDUTAS PROIBIDAS')) {
+    throw new Error('bloco de itens proibidos ausente no e-mail');
+  }
+  if (!html.includes(ITENS_PROIBIDOS[0]) || !html.includes(ITENS_PROIBIDOS[ITENS_PROIBIDOS.length - 1])) {
+    throw new Error('lista de itens proibidos incompleta no e-mail');
+  }
+  if (html.includes('🚫')) throw new Error('emoji cru vazou no bloco de itens proibidos');
 
   const blob = getBrasaoBlob_();
   if (blob.getBytes().length < 1000) throw new Error('BRASAO_PNG_BASE64 não decodificou um PNG válido');
