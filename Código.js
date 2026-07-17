@@ -220,6 +220,46 @@ Qualquer dúvida, chama no grupo do WhatsApp.`;
 // muita gente confirmando no mesmo dia. O AppSheet e a aba Aceites já mostram tudo ao vivo,
 // então a cota inteira fica livre pro e-mail que importa: a cópia do termo pro convidado.
 
+/**
+ * Confere, pra cada linha da aba Aceites, se já existe um e-mail de
+ * confirmação na caixa de Enviados do Gmail. Quem não tiver, reenvia
+ * agora. Rode manualmente no editor do Apps Script (selecione
+ * "reenviarEmailsFaltantes" → Executar) sempre que suspeitar que algum
+ * e-mail não saiu (ex: cota diária do Gmail estourada).
+ * Só pesquisar no Gmail não gasta cota de envio, só o reenvio em si —
+ * então rodar essa função de novo não tem custo além dos que realmente
+ * precisam ser reenviados.
+ */
+function reenviarEmailsFaltantes() {
+  const aba = SpreadsheetApp.openById(SHEET_ID).getSheetByName(ABA_ACEITES);
+  const dados = aba.getDataRange().getValues();
+
+  let faltando = 0, reenviados = 0, falharam = 0;
+
+  for (let i = 1; i < dados.length; i++) {
+    const [timestamp, nome, telefone, email, , , termo_versao, protocolo] = dados[i];
+    if (!email) continue;
+
+    const jaEnviado = GmailApp.search(`in:sent to:${email} subject:"RodFest Folia: confirmação de presença"`, 0, 1).length > 0;
+    if (jaEnviado) continue;
+
+    faltando++;
+    try {
+      enviarEmailConfirmacao({
+        nome, telefone, email, termo_versao, protocolo,
+        aceito_em: (timestamp instanceof Date ? timestamp : new Date(timestamp)).toISOString()
+      });
+      reenviados++;
+      Utilities.sleep(300); // ponytail: pausa curta pra não martelar a API de envio de uma vez
+    } catch (erro) {
+      falharam++;
+      console.error('Falha ao reenviar pra ' + email + ': ' + erro);
+    }
+  }
+
+  console.log(`Verificação concluída: ${faltando} sem e-mail enviado, ${reenviados} reenviados com sucesso, ${falharam} falharam (provável cota do Gmail).`);
+}
+
 // ==== Painel de check-in ====
 // Rode esta função UMA VEZ manualmente no editor do Apps Script
 // (selecione "configurarAbaCheckin" no menu de funções e clique em Executar).
