@@ -1,7 +1,6 @@
 // ==== CONFIGURAÇÃO ====
 const SHEET_ID = '1Nvv7MVhjX3QGeuqUXgpIkEfyJFK-TGqPykJIIlvBLJI';
 const ABA_ACEITES = 'Aceites';
-const EMAIL_ORGANIZACAO = 'eitaloversrodfestfolia@gmail.com';
 const PRAZO_LIMITE = new Date('2026-07-17T23:59:00-03:00');
 const ARQUIVO_HTML_TICKET = 'termo'; // rodfest_termo_de_embarque.html
 const NOME_REMETENTE = 'RodFest Folia 2026'; // nome exibido no lugar do e-mail cru na caixa de entrada de quem recebe
@@ -53,11 +52,11 @@ function doPost(e) {
     }
 
     enviarEmailConfirmacao(dados);
-    notificarOrganizacao(dados, foiAtualizacao);
 
     return responderJson({ ok: true, protocolo: dados.protocolo });
 
   } catch (erro) {
+    console.error('doPost falhou: ' + erro); // aparece no detalhe de cada execução em Execuções
     return responderJson({ ok: false, motivo: 'erro interno', detalhe: String(erro) });
   }
 }
@@ -216,35 +215,10 @@ Qualquer dúvida, chama no grupo do WhatsApp.`;
   });
 }
 
-function notificarOrganizacao(dados, foiAtualizacao) {
-  const linhas = [
-    ['Nome', dados.nome],
-    ['WhatsApp', dados.telefone],
-    ['E-mail', dados.email],
-    ['Protocolo', dados.protocolo],
-    ['Aceito em', formatarDataHora_(dados.aceito_em)]
-  ];
-
-  const corpoTexto = `${foiAtualizacao ? 'Aceite atualizado' : 'Novo aceite registrado'}.
-
-${linhas.map(([rotulo, valor]) => `${rotulo}: ${valor}`).join('\n')}`;
-
-  const corpoHtml = `<p style="margin:0 0 14px;">${foiAtualizacao ? 'Aceite atualizado' : 'Novo aceite registrado'}.</p>
-    <table style="width:100%;font-size:13px;border-collapse:collapse;">
-      ${linhas.map(([rotulo, valor]) => `<tr><td style="padding:4px 10px 4px 0;color:#7A7160;white-space:nowrap;">${rotulo}</td><td style="padding:4px 0;font-weight:700;">${valor}</td></tr>`).join('')}
-    </table>`;
-
-  GmailApp.sendEmail(
-    EMAIL_ORGANIZACAO,
-    `RodFest: ${dados.nome} ${foiAtualizacao ? 'atualizou' : 'confirmou'} presença`,
-    corpoTexto,
-    {
-      name: NOME_REMETENTE,
-      htmlBody: envolverEmailHtml_(foiAtualizacao ? 'ACEITE ATUALIZADO' : 'NOVO ACEITE', corpoHtml),
-      inlineImages: { brasao: getBrasaoBlob_() }
-    }
-  );
-}
+// ponytail: notificação por e-mail pra organização foi removida — conta pessoal do Gmail tem
+// cota de ~100 e-mails/dia via Apps Script, e 2 e-mails por confirmação estourava rápido com
+// muita gente confirmando no mesmo dia. O AppSheet e a aba Aceites já mostram tudo ao vivo,
+// então a cota inteira fica livre pro e-mail que importa: a cópia do termo pro convidado.
 
 // ==== Painel de check-in ====
 // Rode esta função UMA VEZ manualmente no editor do Apps Script
