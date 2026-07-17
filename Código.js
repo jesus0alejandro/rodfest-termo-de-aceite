@@ -221,21 +221,25 @@ Qualquer dúvida, chama no grupo do WhatsApp.`;
 // então a cota inteira fica livre pro e-mail que importa: a cópia do termo pro convidado.
 
 /**
- * Confere, pra cada linha da aba Aceites, se já existe um e-mail de
- * confirmação na caixa de Enviados do Gmail. Quem não tiver, reenvia
- * agora. Rode manualmente no editor do Apps Script (selecione
- * "reenviarEmailsFaltantes" → Executar) sempre que suspeitar que algum
- * e-mail não saiu (ex: cota diária do Gmail estourada).
- * Só pesquisar no Gmail não gasta cota de envio, só o reenvio em si —
- * então rodar essa função de novo não tem custo além dos que realmente
- * precisam ser reenviados.
+ * PASSO 1 de 2 — rode logado como eitaloversrodfestfolia@gmail.com (é a única
+ * conta que enxerga, na sua caixa de Enviados, os e-mails que ela mesma já
+ * mandou). Só pesquisa, não envia nada — não gasta a cota diária de envio,
+ * então funciona mesmo com a cota de envio estourada. Grava numa aba nova
+ * "PendentesEmail" quem ainda não recebeu a confirmação.
+ * Depois de rodar esta, rode enviarParaPendentes() (passo 2) — essa pode ser
+ * com qualquer conta que tenha cota de envio livre.
  */
-function reenviarEmailsFaltantes() {
-  const aba = SpreadsheetApp.openById(SHEET_ID).getSheetByName(ABA_ACEITES);
+function listarPendentesEmail() {
+  const planilha = SpreadsheetApp.openById(SHEET_ID);
+  const aba = planilha.getSheetByName(ABA_ACEITES);
   const dados = aba.getDataRange().getValues();
 
-  let faltando = 0, reenviados = 0, falharam = 0;
+  let pendentes = planilha.getSheetByName('PendentesEmail');
+  if (!pendentes) pendentes = planilha.insertSheet('PendentesEmail');
+  pendentes.clear();
+  pendentes.appendRow(['nome', 'telefone', 'email', 'termo_versao', 'protocolo', 'aceito_em']);
 
+  let faltando = 0;
   for (let i = 1; i < dados.length; i++) {
     const [timestamp, nome, telefone, email, , , termo_versao, protocolo] = dados[i];
     if (!email) continue;
@@ -244,20 +248,50 @@ function reenviarEmailsFaltantes() {
     if (jaEnviado) continue;
 
     faltando++;
+    pendentes.appendRow([
+      nome, telefone, email, termo_versao, protocolo,
+      (timestamp instanceof Date ? timestamp : new Date(timestamp)).toISOString()
+    ]);
+  }
+
+  console.log(`Encontrados ${faltando} sem e-mail enviado. Lista gravada na aba "PendentesEmail". Agora rode enviarParaPendentes() (pode ser com outra conta).`);
+}
+
+/**
+ * PASSO 2 de 2 — pode rodar com QUALQUER conta que tenha acesso de edição na
+ * planilha (útil quando a conta da eitalovers estourou a cota diária de
+ * envio). Lê a aba "PendentesEmail" (gerada por listarPendentesEmail()) e
+ * manda o e-mail de confirmação pra cada um, usando a cota de quem estiver
+ * executando. Apaga da lista quem enviar com sucesso, então dá pra rodar de
+ * novo depois pra tentar só quem ainda falhou.
+ */
+function enviarParaPendentes() {
+  const planilha = SpreadsheetApp.openById(SHEET_ID);
+  const pendentes = planilha.getSheetByName('PendentesEmail');
+  if (!pendentes) {
+    console.log('Nenhuma aba "PendentesEmail" encontrada — rode listarPendentesEmail() primeiro.');
+    return;
+  }
+
+  const dados = pendentes.getDataRange().getValues();
+  let enviados = 0, falharam = 0;
+
+  for (let i = dados.length - 1; i >= 1; i--) { // de baixo pra cima, pra apagar linha sem bagunçar os índices
+    const [nome, telefone, email, termo_versao, protocolo, aceito_em] = dados[i];
+    if (!email) continue;
+
     try {
-      enviarEmailConfirmacao({
-        nome, telefone, email, termo_versao, protocolo,
-        aceito_em: (timestamp instanceof Date ? timestamp : new Date(timestamp)).toISOString()
-      });
-      reenviados++;
+      enviarEmailConfirmacao({ nome, telefone, email, termo_versao, protocolo, aceito_em });
+      pendentes.deleteRow(i + 1);
+      enviados++;
       Utilities.sleep(300); // ponytail: pausa curta pra não martelar a API de envio de uma vez
     } catch (erro) {
       falharam++;
-      console.error('Falha ao reenviar pra ' + email + ': ' + erro);
+      console.error('Falha ao enviar pra ' + email + ': ' + erro);
     }
   }
 
-  console.log(`Verificação concluída: ${faltando} sem e-mail enviado, ${reenviados} reenviados com sucesso, ${falharam} falharam (provável cota do Gmail).`);
+  console.log(`${enviados} e-mails enviados com sucesso, ${falharam} falharam (ainda sem cota?). Quem falhou continua na aba "PendentesEmail" pra tentar de novo depois.`);
 }
 
 // ==== Painel de check-in ====
