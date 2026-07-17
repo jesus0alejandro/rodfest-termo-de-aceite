@@ -229,6 +229,16 @@ Qualquer dúvida, chama no grupo do WhatsApp.`;
  * Depois de rodar esta, rode enviarParaPendentes() (passo 2) — essa pode ser
  * com qualquer conta que tenha cota de envio livre.
  */
+/**
+ * Mostra quantos e-mails a conta que estiver rodando AINDA pode enviar hoje
+ * (o Apps Script já expõe esse número certinho, não precisa adivinhar pelo
+ * erro). Rode com qualquer conta — cada uma tem sua própria cota, então o
+ * número muda dependendo de quem estiver logado no editor.
+ */
+function verificarCotaEmail() {
+  console.log(`Cota de e-mail restante hoje (${Session.getActiveUser().getEmail() || 'conta atual'}): ${MailApp.getRemainingDailyQuota()}`);
+}
+
 function listarPendentesEmail() {
   const planilha = SpreadsheetApp.openById(SHEET_ID);
   const aba = planilha.getSheetByName(ABA_ACEITES);
